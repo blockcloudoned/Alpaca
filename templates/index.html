@@ -3,20 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <title>Alpaca Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        pre { background: #f4f4f4; padding: 1em; border-radius: 5px; }
+        .error { color: red; }
+        .order-form { margin-top: 2em; }
+        label { display: block; margin-top: 0.5em; }
+        input, select { margin-bottom: 1em; }
+    </style>
 </head>
 <body>
     <h1>Alpaca Account Info</h1>
     <pre id="account"></pre>
+    <div id="account-error" class="error"></div>
+
     <h2>Positions</h2>
     <pre id="positions"></pre>
-    <script>
-        fetch('/api/account_info')
-            .then(res => res.json())
-            .then(data => document.getElementById('account').textContent = JSON.stringify(data, null, 2));
+    <div id="positions-error" class="error"></div>
 
-        fetch('/api/positions')
+    <h2>Orders</h2>
+    <pre id="orders"></pre>
+    <div id="orders-error" class="error"></div>
+
+    <div class="order-form">
+        <h2>Place Order</h2>
+        <form id="orderForm">
+            <label>Symbol: <input type="text" name="symbol" required></label>
+            <label>Quantity: <input type="number" name="qty" required></label>
+            <label>Side:
+                <select name="side">
+                    <option value="buy">Buy</option>
+                    <option value="sell">Sell</option>
+                </select>
+            </label>
+            <label>Type:
+                <select name="type">
+                    <option value="market">Market</option>
+                    <option value="limit">Limit</option>
+                </select>
+            </label>
+            <label>Time in Force:
+                <select name="time_in_force">
+                    <option value="gtc">GTC</option>
+                    <option value="day">Day</option>
+                    <option value="opg">OPG</option>
+                </select>
+            </label>
+            <button type="submit">Submit Order</button>
+        </form>
+        <div id="order-result" class="error"></div>
+    </div>
+
+    <script>
+        function fetchAccount() {
+            fetch('/api/account_info')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('account-error').textContent = data.error;
+                        document.getElementById('account').textContent = '';
+                    } else {
+                        document.getElementById('account-error').textContent = '';
+                        document.getElementById('account').textContent = JSON.stringify(data, null, 2);
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('account-error').textContent = err;
+                });
+        }
+
+        function fetchPositions() {
+            fetch('/api/positions')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('positions-error').textContent = data.error;
+                        document.getElementById('positions').textContent = '';
+                    } else {
+                        document.getElementById('positions-error').textContent = '';
+                        document.getElementById('positions').textContent = JSON.stringify(data, null, 2);
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('positions-error').textContent = err;
+                });
+        }
+
+        function fetchOrders() {
+            fetch('/api/orders?status=all&limit=20')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('orders-error').textContent = data.error;
+                        document.getElementById('orders').textContent = '';
+                    } else {
+                        document.getElementById('orders-error').textContent = '';
+                        document.getElementById('orders').textContent = JSON.stringify(data, null, 2);
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('orders-error').textContent = err;
+                });
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const data = {
+                symbol: form.symbol.value,
+                qty: form.qty.value,
+                side: form.side.value,
+                type: form.type.value,
+                time_in_force: form.time_in_force.value
+            };
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
             .then(res => res.json())
-            .then(data => document.getElementById('positions').textContent = JSON.stringify(data, null, 2));
+            .then(result => {
+                if (result.error) {
+                    document.getElementById('order-result').textContent = result.error;
+                } else {
+                    document.getElementById('order-result').textContent = 'Order placed!';
+                    fetchOrders();
+                    fetchPositions();
+                }
+            })
+            .catch(err => {
+                document.getElementById('order-result').textContent = err;
+            });
+        });
+
+        // Initial fetch
+        fetchAccount();
+        fetchPositions();
+        fetchOrders();
     </script>
 </body>
 </html>

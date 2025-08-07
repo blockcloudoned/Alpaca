@@ -36,7 +36,8 @@ def get_account_status_data(api):
             "currency": account.currency,
             "portfolio_value": float(account.portfolio_value),
             "buying_power": float(account.buying_power),
-            "daytrade_count": account.daytrade_count,
+            "cash": float(account.cash),
+            "equity": float(account.equity),
             "pattern_day_trader": account.pattern_day_trader,
         }
     except APIError as e:
@@ -50,6 +51,7 @@ def list_positions_data(api):
             {
                 "symbol": pos.symbol,
                 "qty": float(pos.qty),
+                "market_value": float(pos.market_value),
                 "avg_entry_price": float(pos.avg_entry_price),
                 "current_price": float(pos.current_price),
                 "unrealized_pl": float(pos.unrealized_pl),

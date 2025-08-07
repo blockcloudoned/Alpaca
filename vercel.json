@@ -1,15 +1,18 @@
 {
-  "version": 2,
   "builds": [
     {
-      "src": "Alpaca.py",
+      "src": "api/api.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "api/api.py"
+    },
+    {
       "src": "/(.*)",
-      "dest": "Alpaca.py"
+      "dest": "templates/index.html"
     }
   ]
 }
