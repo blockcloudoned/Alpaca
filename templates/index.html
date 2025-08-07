@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Alpaca Dashboard</title>
+</head>
+<body>
+    <h1>Alpaca Account Info</h1>
+    <pre id="account"></pre>
+    <h2>Positions</h2>
+    <pre id="positions"></pre>
+    <script>
+        fetch('/api/account_info')
+            .then(res => res.json())
+            .then(data => document.getElementById('account').textContent = JSON.stringify(data, null, 2));
+
+        fetch('/api/positions')
+            .then(res => res.json())
+            .then(data => document.getElementById('positions').textContent = JSON.stringify(data, null, 2));
+    </script>
+</body>
+</html>
